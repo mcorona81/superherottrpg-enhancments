@@ -4,9 +4,22 @@
   "description": "This module provides enhancements and automated dice rolls for the Superhero TTRPG system in Foundry VTT.",
   "version": "1.0.0",
   "author": "Miguel Corona",
-  "compatibleCoreVersion": "9.0",
-  "minimumCoreVersion": "9.0",
+  "compatibleCoreVersion": "10.0",
+  "minimumCoreVersion": "10.0",
   "url": "https://github.com/mcorona81/superherottrpg-enhancments",
-  "manifest": "https://github.com/mcorona81/superherottrpg-enhancments/releases/latest/download/module.json",
-  "download": "https://github.com/mcorona81/superherottrpg-enhancments/releases/latest/download/module.zip"
+  "manifest": "https://raw.githubusercontent.com/mcorona81/superherottrpg-enhancments/main/module.json",
+  "download": "https://github.com/mcorona81/superherottrpg-enhancments/archive/refs/heads/main.zip",
+  "scripts": [
+    "scripts/scripts.js"
+  ],
+  "dependencies": [
+    {
+      "name": "dice-so-nice",
+      "type": "module"
+    },
+    {
+      "name": "dice-tray",
+      "type": "module"
+    }
+  ]
 }
