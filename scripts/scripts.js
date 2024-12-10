@@ -1,4 +1,4 @@
-// Function to roll dice based on bubbles
+// Function to roll dice with Dice So Nice
 async function rollDice(bubbles) {
     if (bubbles === 0) {
         const roll1 = await new Roll("1d6").evaluate({ async: true });
@@ -8,7 +8,7 @@ async function rollDice(bubbles) {
         return { total: Math.min(roll1.total, roll2.total), formula: "2d6 (lower)" };
     }
     const roll = await new Roll(`${bubbles}d6`).evaluate({ async: true });
-    await game.dice3d.showForRoll(roll);
+    await game.dice3d.showForRoll(roll); // Dice So Nice visual roll
     return { total: roll.total, formula: `${bubbles}d6` };
 }
 
@@ -44,7 +44,32 @@ async function rollAttributeWithEnhancements(actor, attribute) {
     });
 }
 
-// Register a hook to make this functionality available for all actors
+// Add Dice Tray buttons for attributes (if Dice Tray is installed)
+Hooks.on("renderDiceTray", (app, html) => {
+    const attributes = ["agility", "strength", "charisma", "observation"];
+    const buttons = attributes.map(attr => {
+        return `<button class="superhero-roll" data-attribute="${attr}">${attr.toUpperCase()}</button>`;
+    }).join("");
+
+    html.find(".dice-tray-buttons").append(`
+        <div class="superhero-buttons">
+            <h3>Superhero TTRPG</h3>
+            ${buttons}
+        </div>
+    `);
+
+    html.find(".superhero-roll").click(async event => {
+        const attribute = event.currentTarget.dataset.attribute;
+        const actor = game.user.character; // Assumes user has a character assigned
+        if (!actor) {
+            ui.notifications.warn("No character assigned!");
+            return;
+        }
+        await rollAttributeWithEnhancements(actor, attribute);
+    });
+});
+
+// Make the roll function globally accessible
 Hooks.on("ready", () => {
     game.superheroTTRPG = {
         rollAttribute: async (actorId, attribute) => {
