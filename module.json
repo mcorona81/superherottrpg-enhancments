@@ -1,8 +1,8 @@
 {
   "name": "superherottrpg-enhancements",
   "title": "Superhero TTRPG Enhancements",
-  "description": "Enhancements for the Superhero TTRPG system, including actor-specific PDF sheets, automated dice rolls, and interactive gameplay features.",
-  "version": "1.0.0",
+  "description": "Enhancements for the Superhero TTRPG system, including actor-specific PDF sheets, automated dice rolls, and options for creating custom actors (Character, Nemesis, HQ, Team, Vehicle, NPC).",
+  "version": "1.1.0",
   "author": "Miguel Corona",
   "compatibleCoreVersion": "12",
   "minimumCoreVersion": "12",
@@ -27,11 +27,6 @@
       "manifest": "https://github.com/Moerill/dice-so-nice/releases/latest/download/module.json"
     },
     {
-      "name": "dice-tray",
-      "type": "module",
-      "manifest": "https://raw.githubusercontent.com/jessev14/fvtt-dice-tray/master/module.json"
-    },
-    {
       "name": "pdf-character-sheet",
       "type": "module",
       "manifest": "https://github.com/FoundryVTTModules/pdf-character-sheet/releases/latest/download/module.json"
@@ -45,4 +40,3 @@
     }
   ]
 }
-
