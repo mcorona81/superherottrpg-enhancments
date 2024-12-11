@@ -1,8 +1,8 @@
 {
   "name": "superherottrpg-enhancements",
   "title": "Superhero TTRPG Enhancements",
-  "description": "Enhancements for the Superhero TTRPG system, including actor-specific PDF sheets, automated dice rolls, and options for creating custom actors (Character, Nemesis, HQ, Team, Vehicle, NPC).",
-  "version": "1.1.0",
+  "description": "Enhancements for the Superhero TTRPG system, including actor-specific PDF sheets, automated dice rolls, and options for creating custom actors (Character, Nemesis, HQ, Team, Vehicle, NPC), and enhanced NPC generation.",
+  "version": "1.2.0",
   "author": "Miguel Corona",
   "compatibleCoreVersion": "12",
   "minimumCoreVersion": "12",
