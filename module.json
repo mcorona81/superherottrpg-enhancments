@@ -2,7 +2,7 @@
   "name": "superherottrpg-enhancements",
   "title": "Superhero TTRPG Enhancements",
   "description": "Enhancements for the Superhero TTRPG system, including actor-specific PDF sheets, automated dice rolls, and options for creating custom actors (Character, Nemesis, HQ, Team, Vehicle, NPC), and enhanced NPC generation.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "Miguel Corona",
   "compatibleCoreVersion": "12",
   "minimumCoreVersion": "12",
@@ -18,6 +18,12 @@
       "label": "Default Journals",
       "path": "journals/",
       "type": "JournalEntry"
+    },
+    {
+      "name": "default-actors",
+      "label": "Default Actors",
+      "path": "actors/",
+      "type": "Actor"
     }
   ],
   "dependencies": [
@@ -30,6 +36,11 @@
       "name": "pdf-character-sheet",
       "type": "module",
       "manifest": "https://github.com/FoundryVTTModules/pdf-character-sheet/releases/latest/download/module.json"
+    },
+    {
+      "name": "pdfoundry",
+      "type": "module",
+      "manifest": "https://github.com/FoundryVTTModules/pdfoundry/releases/latest/download/module.json"
     }
   ],
   "authors": [
