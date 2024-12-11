@@ -63,7 +63,7 @@ Hooks.on("ready", () => {
     };
 });
 
-// Create Dialog for New Actor Type
+// Custom actor creation dialog
 Hooks.on("renderActorDirectory", (app, html, data) => {
     const button = $(`<button class="create-actor-btn"><i class="fas fa-user-plus"></i> Create Custom Actor</button>`);
     html.find(".header-actions").append(button);
@@ -116,4 +116,60 @@ async function createCustomActor(name, pdfPath) {
     });
 
     ui.notifications.info(`${name} actor created with ${name} sheet.`);
+}
+
+// Enhanced NPC creation workflow
+Hooks.on("createActor", (actor) => {
+    if (actor.type === "npc") {
+        actor.delete();
+        generateNPCDialog();
+    }
+});
+
+// Function to display NPC creation dialog
+function generateNPCDialog() {
+    const roles = {
+        Civilian: ["An average bystander.", "A shopkeeper.", "A worried citizen."],
+        Medic: ["A skilled paramedic.", "A weary doctor.", "A first responder."],
+        Tech: ["A brilliant coder.", "A quirky engineer.", "A knowledgeable hacker."]
+    };
+
+    new Dialog({
+        title: "Generate NPC",
+        content: `<p>Select an option:</p>`,
+        buttons: {
+            random: {
+                label: "Random NPC",
+                callback: () => generateRandomNPC()
+            },
+            selected: {
+                label: "Select Role",
+                callback: (html) => {
+                    const role = html.find("#role").val();
+                    generateRandomNPC(role);
+                }
+            }
+        },
+        default: "random"
+    }).render(true);
+}
+
+// Generate Random NPC
+function generateRandomNPC(role = null) {
+    const roles = {
+        Civilian: ["An average bystander.", "A shopkeeper.", "A worried citizen."],
+        Medic: ["A skilled paramedic.", "A weary doctor.", "A first responder."],
+        Tech: ["A brilliant coder.", "A quirky engineer.", "A knowledgeable hacker."]
+    };
+
+    const name = `NPC_${Math.random().toString(36).substring(7)}`;
+    const description = roles[role]?.[Math.floor(Math.random() * roles[role].length)] || "A random NPC.";
+
+    Actor.create({
+        name,
+        type: "npc",
+        data: { description }
+    });
+
+    ui.notifications.info(`NPC created: ${name} - ${description}`);
 }
