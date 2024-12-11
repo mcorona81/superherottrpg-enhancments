@@ -1,12 +1,48 @@
 {
-    "name": "superherottrpg-enhancements",
-    "title": "Superhero TTRPG Enhancements",
-    "description": "This module provides enhancements and automated dice rolls for the Superhero TTRPG system in Foundry VTT.",
-    "version": "1.0.0",
-    "author": "Miguel Corona",
-    "compatibleCoreVersion": "10",
-    "minimumCoreVersion": "10",
-    "url": "https://github.com/mcorona81/superherottrpg-enhancments",
-    "manifest": "https://raw.githubusercontent.com/mcorona81/superherottrpg-enhancments/main/module.json",
-    "download": "https://github.com/mcorona81/superherottrpg-enhancments/archive/refs/heads/main.zip"
+  "name": "superherottrpg-enhancements",
+  "title": "Superhero TTRPG Enhancements",
+  "description": "Enhancements for the Superhero TTRPG system, including actor-specific PDF sheets, automated dice rolls, and interactive gameplay features.",
+  "version": "1.0.0",
+  "author": "Miguel Corona",
+  "compatibleCoreVersion": "12",
+  "minimumCoreVersion": "12",
+  "url": "https://github.com/mcorona81/superherottrpg-enhancments",
+  "manifest": "https://raw.githubusercontent.com/mcorona81/superherottrpg-enhancments/main/module.json",
+  "download": "https://github.com/mcorona81/superherottrpg-enhancments/archive/refs/heads/main.zip",
+  "scripts": [
+    "scripts/scripts.js"
+  ],
+  "packs": [
+    {
+      "name": "default-journals",
+      "label": "Default Journals",
+      "path": "journals/",
+      "type": "JournalEntry"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "dice-so-nice",
+      "type": "module",
+      "manifest": "https://github.com/Moerill/dice-so-nice/releases/latest/download/module.json"
+    },
+    {
+      "name": "dice-tray",
+      "type": "module",
+      "manifest": "https://raw.githubusercontent.com/jessev14/fvtt-dice-tray/master/module.json"
+    },
+    {
+      "name": "pdf-character-sheet",
+      "type": "module",
+      "manifest": "https://github.com/FoundryVTTModules/pdf-character-sheet/releases/latest/download/module.json"
+    }
+  ],
+  "authors": [
+    {
+      "name": "Miguel Corona",
+      "url": "https://github.com/mcorona81",
+      "discord": "YourDiscord#0000"
+    }
+  ]
 }
+
