@@ -1,175 +1,71 @@
-// Hook: Assign default PDFs when creating actors
-Hooks.on("preCreateActor", async (actor, options, userId) => {
-    const defaultPDFs = {
-        character: "journals/character.pdf",
-        npc: "journals/npc.pdf",
-        nemesis: "journals/nemesis.pdf",
-        vehicle: "journals/vehicle.pdf",
-        teamProgress: "journals/team-progress.pdf",
-        hq: "journals/hq.pdf"
-    };
+// List of default PDFs for each actor type
+const defaultPDFs = {
+  "character": "modules/superherottrpg-enhancements/assets/character.pdf",
+  "nemesis": "modules/superherottrpg-enhancements/assets/nemesis.pdf",
+  "team": "modules/superherottrpg-enhancements/assets/team.pdf",
+  "hq": "modules/superherottrpg-enhancements/assets/hq.pdf",
+  "vehicle": "modules/superherottrpg-enhancements/assets/vehicle.pdf"
+};
 
-    const type = actor.type;
-    const pdfPath = defaultPDFs[type];
-
-    if (pdfPath) {
-        actor.updateSource({ "flags.pdf-character-sheet.filePath": pdfPath });
-    }
+// Hook to auto-assign PDFs when creating new actors
+Hooks.on("preCreateActor", (actorData) => {
+  const actorType = actorData.type;
+  if (defaultPDFs[actorType]) {
+    actorData.updateSource({
+      "flags.pdfoundry.pdf": defaultPDFs[actorType]
+    });
+  }
 });
 
-// Function: Roll dice based on attributes
+// Function to roll dice based on filled bubbles
 async function rollDice(bubbles) {
-    const rollFormula = bubbles > 0 ? `${bubbles}d6` : "2d6";
-    const roll = new Roll(rollFormula).evaluate({ async: true });
-
-    await game.dice3d?.showForRoll(roll);
-
-    return {
-        total: roll.total,
-        formula: rollFormula
-    };
+  if (bubbles === 0) {
+    const roll1 = await new Roll("1d6").evaluate({ async: true });
+    const roll2 = await new Roll("1d6").evaluate({ async: true });
+    await game.dice3d.showForRoll(roll1);
+    await game.dice3d.showForRoll(roll2);
+    return { total: Math.min(roll1.total, roll2.total), formula: "2d6 (lower)" };
+  }
+  const roll = await new Roll(`${bubbles}d6`).evaluate({ async: true });
+  await game.dice3d.showForRoll(roll);
+  return { total: roll.total, formula: `${bubbles}d6` };
 }
 
-// Helper: Calculate enhancement bonuses
-function calculateEnhancements(enhancements = []) {
-    return enhancements.reduce((sum, value) => sum + (value || 0), 0);
+// Helper function to calculate enhancement bonuses
+function calculateEnhancements(enhancements) {
+  return enhancements.reduce((total, value) => total + (value || 0), 0);
 }
 
-// Main: Roll attribute with enhancements
+// Function to perform rolls with enhancements
 async function rollAttributeWithEnhancements(actor, attribute) {
-    const bubbles = actor.getFlag("superheroTTRPG", `attributes.${attribute}.bubbles`) || 0;
-    const enhancements = actor.getFlag("superheroTTRPG", `enhancements.${attribute}`) || [];
+  const bubbles = actor.system.attributes[attribute]?.bubbles || 0;
+  const enhancements = actor.system.enhancements[attribute] || [];
+  const diceResult = await rollDice(bubbles);
+  const enhancementBonus = calculateEnhancements(enhancements);
+  const totalResult = diceResult.total + enhancementBonus;
 
-    const diceResult = await rollDice(bubbles);
-    const enhancementBonus = calculateEnhancements(enhancements);
-    const totalResult = diceResult.total + enhancementBonus;
-
-    ChatMessage.create({
-        user: game.user.id,
-        speaker: ChatMessage.getSpeaker({ actor }),
-        content: `
-            <h2>${attribute.toUpperCase()} Roll</h2>
-            <p><strong>Dice Roll:</strong> ${diceResult.total} (${diceResult.formula})</p>
-            <p><strong>Enhancements:</strong> +${enhancementBonus}</p>
-            <p><strong>Total Result:</strong> ${totalResult}</p>
-        `
-    });
+  ChatMessage.create({
+    user: game.user.id,
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `
+      <h2>${attribute.toUpperCase()} Roll</h2>
+      <p><strong>Dice Roll:</strong> ${diceResult.total} (${diceResult.formula})</p>
+      <p><strong>Enhancements:</strong> +${enhancementBonus}</p>
+      <p><strong>Total Result:</strong> ${totalResult}</p>
+    `
+  });
 }
 
-// Hook: Add roll functionality to the game
+// Make dice rolling globally accessible
 Hooks.on("ready", () => {
-    game.superheroTTRPG = {
-        rollAttribute: rollAttributeWithEnhancements
-    };
-});
-
-// Custom actor creation dialog
-Hooks.on("renderActorDirectory", (app, html, data) => {
-    const button = $(`<button class="create-actor-btn"><i class="fas fa-user-plus"></i> Create Custom Actor</button>`);
-    html.find(".header-actions").append(button);
-
-    button.click(() => {
-        new Dialog({
-            title: "Create New Actor",
-            content: "<p>Select the type of actor to create:</p>",
-            buttons: {
-                character: {
-                    label: "Character",
-                    callback: () => createCustomActor("Character", "journals/character.pdf")
-                },
-                nemesis: {
-                    label: "Nemesis",
-                    callback: () => createCustomActor("Nemesis", "journals/nemesis.pdf")
-                },
-                hq: {
-                    label: "HQ",
-                    callback: () => createCustomActor("HQ", "journals/hq.pdf")
-                },
-                team: {
-                    label: "Team",
-                    callback: () => createCustomActor("Team", "journals/team-progress.pdf")
-                },
-                vehicle: {
-                    label: "Vehicle",
-                    callback: () => createCustomActor("Vehicle", "journals/vehicle.pdf")
-                },
-                npc: {
-                    label: "NPC",
-                    callback: () => createCustomActor("NPC", "journals/npc.pdf")
-                }
-            },
-            default: "character"
-        }).render(true);
-    });
-});
-
-// Function to create custom actor and assign the correct PDF sheet
-async function createCustomActor(name, pdfPath) {
-    const actorType = name.toLowerCase();
-    const newActor = await Actor.create({
-        name: `New ${name}`,
-        type: actorType
-    });
-
-    await newActor.update({
-        "flags.pdf-character-sheet.filePath": pdfPath
-    });
-
-    ui.notifications.info(`${name} actor created with ${name} sheet.`);
-}
-
-// Enhanced NPC creation workflow
-Hooks.on("createActor", (actor) => {
-    if (actor.type === "npc") {
-        actor.delete();
-        generateNPCDialog();
+  game.superheroTTRPG = {
+    rollAttribute: async (actorId, attribute) => {
+      const actor = game.actors.get(actorId);
+      if (!actor) {
+        ui.notifications.warn("Actor not found.");
+        return;
+      }
+      await rollAttributeWithEnhancements(actor, attribute);
     }
+  };
 });
-
-// Function to display NPC creation dialog
-function generateNPCDialog() {
-    const roles = {
-        Civilian: ["An average bystander.", "A shopkeeper.", "A worried citizen."],
-        Medic: ["A skilled paramedic.", "A weary doctor.", "A first responder."],
-        Tech: ["A brilliant coder.", "A quirky engineer.", "A knowledgeable hacker."]
-    };
-
-    new Dialog({
-        title: "Generate NPC",
-        content: `<p>Select an option:</p>`,
-        buttons: {
-            random: {
-                label: "Random NPC",
-                callback: () => generateRandomNPC()
-            },
-            selected: {
-                label: "Select Role",
-                callback: (html) => {
-                    const role = html.find("#role").val();
-                    generateRandomNPC(role);
-                }
-            }
-        },
-        default: "random"
-    }).render(true);
-}
-
-// Generate Random NPC
-function generateRandomNPC(role = null) {
-    const roles = {
-        Civilian: ["An average bystander.", "A shopkeeper.", "A worried citizen."],
-        Medic: ["A skilled paramedic.", "A weary doctor.", "A first responder."],
-        Tech: ["A brilliant coder.", "A quirky engineer.", "A knowledgeable hacker."]
-    };
-
-    const name = `NPC_${Math.random().toString(36).substring(7)}`;
-    const description = roles[role]?.[Math.floor(Math.random() * roles[role].length)] || "A random NPC.";
-
-    Actor.create({
-        name,
-        type: "npc",
-        data: { description }
-    });
-
-    ui.notifications.info(`NPC created: ${name} - ${description}`);
-}
