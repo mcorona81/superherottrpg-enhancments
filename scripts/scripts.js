@@ -1,10 +1,23 @@
+// Register custom actor types
+Hooks.once('init', async function () {
+  CONFIG.Actor.typeLabels = {
+    "character": "Character",
+    "nemesis": "Nemesis",
+    "hq": "HQ",
+    "team": "Team",
+    "vehicle": "Vehicle"
+  };
+
+  console.log("Custom actor types registered:", CONFIG.Actor.typeLabels);
+});
+
 // Map actor types to their PDFs
 const pdfMappings = {
-  "character": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom%20sheets/Sheets/AOH%20Character%20sheet%202.1%20Fillable.pdf",
-  "nemesis": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom%20sheets/Sheets/AOH%20Nemesis%20sheet%201.pdf",
-  "hq": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom%20sheets/Sheets/AOH%20Team%20HQ%20Sheet.pdf",
-  "team": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom%20sheets/Sheets/AOH%20Team%20sheet%20.pdf",
-  "vehicle": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom%20sheets/Sheets/AOH%20Vehicle%20sheet.pdf"
+  "character": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom sheets/Sheets/AOH Character sheet 2.1 Fillable.pdf",
+  "nemesis": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom sheets/Sheets/AOH Nemesis sheet 1.pdf",
+  "hq": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom sheets/Sheets/AOH Team HQ Sheet.pdf",
+  "team": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom sheets/Sheets/AOH Team sheet .pdf",
+  "vehicle": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom sheets/Sheets/AOH Vehicle sheet.pdf"
 };
 
 // Assign PDFs during actor creation
