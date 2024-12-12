@@ -15,7 +15,7 @@ Hooks.on("preCreateActor", async (actor) => {
   }
 });
 
-// Dice rolling logic using Dice So Nice and Dice Tray
+// Dice rolling logic using Dice So Nice
 async function rollDice(bubbles) {
   const formula = bubbles > 0 ? `${bubbles}d6` : "2d6";
   const roll = new Roll(formula).evaluate({ async: true });
