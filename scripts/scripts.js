@@ -1,79 +1,106 @@
-// Main script for the Superhero TTRPG Enhancements module
+// Map actor types to their PDFs
+const pdfMappings = {
+  "character": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom%20sheets/Sheets/AOH%20Character%20sheet%202.1%20Fillable.pdf",
+  "nemesis": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom%20sheets/Sheets/AOH%20Nemesis%20sheet%201.pdf",
+  "hq": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom%20sheets/Sheets/AOH%20Team%20HQ%20Sheet.pdf",
+  "team": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom%20sheets/Sheets/AOH%20Team%20sheet%20.pdf",
+  "vehicle": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom%20sheets/Sheets/AOH%20Vehicle%20sheet.pdf"
+};
 
-// Helper function to roll dice
+// Assign PDFs during actor creation
+Hooks.on("preCreateActor", async (actor) => {
+  const pdfPath = pdfMappings[actor.type];
+  if (pdfPath) {
+    actor.updateSource({ "flags.pdf-character-sheet.filePath": pdfPath });
+  }
+});
+
+// Dice rolling logic using Dice So Nice and Dice Tray
 async function rollDice(bubbles) {
-    if (bubbles === 0) {
-        const roll1 = await new Roll("1d6").evaluate({ async: true });
-        const roll2 = await new Roll("1d6").evaluate({ async: true });
-        await game.dice3d.showForRoll(roll1);
-        await game.dice3d.showForRoll(roll2);
-        return { total: Math.min(roll1.total, roll2.total), formula: "2d6 (lower)" };
-    }
-    const roll = await new Roll(`${bubbles}d6`).evaluate({ async: true });
-    await game.dice3d.showForRoll(roll);
-    return { total: roll.total, formula: `${bubbles}d6` };
+  const formula = bubbles > 0 ? `${bubbles}d6` : "2d6";
+  const roll = new Roll(formula).evaluate({ async: true });
+  await game.dice3d?.showForRoll(roll);
+  return { total: roll.total, formula };
 }
 
-// Helper function to calculate enhancement bonuses
-function calculateEnhancements(enhancements) {
-    return enhancements.reduce((total, value) => total + (value || 0), 0);
+// Calculate enhancements
+function calculateEnhancements(enhancements = []) {
+  return enhancements.reduce((total, bonus) => total + (bonus || 0), 0);
 }
 
-// Function to handle attribute rolls
+// Roll attribute with enhancements
 async function rollAttributeWithEnhancements(actor, attribute) {
-    const bubbles = actor.system.attributes[attribute]?.bubbles || 0;
-    const enhancements = actor.system.enhancements[attribute] || [];
+  const bubbles = actor.getFlag("superheroTTRPG", `attributes.${attribute}.bubbles`) || 0;
+  const enhancements = actor.getFlag("superheroTTRPG", `enhancements.${attribute}`) || [];
 
-    const diceResult = await rollDice(bubbles);
-    const enhancementBonus = calculateEnhancements(enhancements);
-    const totalResult = diceResult.total + enhancementBonus;
+  const diceResult = await rollDice(bubbles);
+  const totalEnhancement = calculateEnhancements(enhancements);
+  const total = diceResult.total + totalEnhancement;
 
-    ChatMessage.create({
-        user: game.user.id,
-        speaker: ChatMessage.getSpeaker({ actor }),
-        content: `
-            <h2>${attribute.toUpperCase()} Roll</h2>
-            <p><strong>Dice Roll:</strong> ${diceResult.total} (${diceResult.formula})</p>
-            <p><strong>Enhancements:</strong> +${enhancementBonus}</p>
-            <p><strong>Total Result:</strong> ${totalResult}</p>
-        `
-    });
+  ChatMessage.create({
+    user: game.user.id,
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `
+      <h2>${attribute.toUpperCase()} Roll</h2>
+      <p><strong>Dice Roll:</strong> ${diceResult.total} (${diceResult.formula})</p>
+      <p><strong>Enhancements:</strong> +${totalEnhancement}</p>
+      <p><strong>Total Result:</strong> ${total}</p>
+    `
+  });
 }
 
-// Hook to register custom actor types and assign PDFs
-Hooks.on("init", () => {
-    CONFIG.Actor.documentClass = class extends CONFIG.Actor.documentClass {
-        prepareData() {
-            super.prepareData();
-            this.assignDefaultPDF();
+// NPC generator using your defined roles
+Hooks.on("createActor", (actor) => {
+  if (actor.type === "npc") {
+    new Dialog({
+      title: "Generate NPC",
+      content: `
+        <p>Choose a role:</p>
+        <select id="npc-role">
+          <option value="Civilian">Civilian</option>
+          <option value="Medic">Medic</option>
+          <option value="Tech">Tech</option>
+          <option value="Mechanic">Mechanic</option>
+          <option value="Politician">Politician</option>
+          <option value="Goon">Goon</option>
+          <option value="Reporter">Reporter</option>
+        </select>
+      `,
+      buttons: {
+        create: {
+          label: "Create",
+          callback: (html) => {
+            const role = html.find("#npc-role").val();
+            generateRandomNPC(role);
+          }
+        },
+        cancel: {
+          label: "Cancel"
         }
-
-        assignDefaultPDF() {
-            const type = this.type;
-            const pdfMap = {
-                "character": "path/to/character.pdf",
-                "nemesis": "path/to/nemesis.pdf",
-                "team": "path/to/team.pdf",
-                "hq": "path/to/hq.pdf",
-                "vehicle": "path/to/vehicle.pdf"
-            };
-            this.data.update({ "system.pdfPath": pdfMap[type] || null });
-        }
-    };
+      }
+    }).render(true);
+  }
 });
 
-// Add a global API for external use
-Hooks.on("ready", () => {
-    game.superheroTTRPG = {
-        rollAttribute: async (actorId, attribute) => {
-            const actor = game.actors.get(actorId);
-            if (!actor) {
-                ui.notifications.warn("Actor not found.");
-                return;
-            }
-            await rollAttributeWithEnhancements(actor, attribute);
-        }
-    };
+function generateRandomNPC(role) {
+  const descriptions = {
+    "Civilian": "An ordinary bystander caught in the action.",
+    "Medic": "A paramedic rushing to save lives.",
+    "Tech": "A brilliant engineer with a secret.",
+    "Mechanic": "A rugged mechanic fixing high-tech machines.",
+    "Politician": "A scheming politician with hidden agendas.",
+    "Goon": "A henchman following orders.",
+    "Reporter": "A relentless journalist seeking the truth."
+  };
 
-    console.log("Superhero TTRPG Enhancements module loaded.");
-});
+  const name = `NPC - ${role}`;
+  const description = descriptions[role] || "A mysterious individual.";
+
+  Actor.create({
+    name,
+    type: "npc",
+    data: { description }
+  });
+
+  ui.notifications.info(`Created NPC: ${name}`);
+}
