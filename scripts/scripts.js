@@ -11,6 +11,53 @@ Hooks.once('init', async function () {
   console.log("Custom actor types registered:", CONFIG.Actor.typeLabels);
 });
 
+// Add a "Create Custom Actor" button to the Actor Directory
+Hooks.on("renderActorDirectory", (app, html, data) => {
+  const button = $(`<button class="create-custom-actor">Create Custom Actor</button>`);
+  html.find(".directory-header").append(button);
+
+  button.click(() => {
+    const d = new Dialog({
+      title: "Create New Actor",
+      content: `
+        <form>
+          <div class="form-group">
+            <label>Actor Name:</label>
+            <input type="text" id="actor-name" placeholder="Enter actor name"/>
+          </div>
+          <div class="form-group">
+            <label>Actor Type:</label>
+            <select id="actor-type">
+              <option value="character">Character</option>
+              <option value="nemesis">Nemesis</option>
+              <option value="hq">HQ</option>
+              <option value="team">Team</option>
+              <option value="vehicle">Vehicle</option>
+            </select>
+          </div>
+        </form>
+      `,
+      buttons: {
+        create: {
+          label: "Create",
+          callback: (html) => {
+            const name = html.find("#actor-name").val();
+            const type = html.find("#actor-type").val();
+            if (name && type) {
+              Actor.create({ name, type });
+              ui.notifications.info(`Created new ${type}: ${name}`);
+            }
+          }
+        },
+        cancel: {
+          label: "Cancel"
+        }
+      }
+    });
+    d.render(true);
+  });
+});
+
 // Map actor types to their PDFs
 const pdfMappings = {
   "character": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom sheets/Sheets/AOH Character sheet 2.1 Fillable.pdf",
