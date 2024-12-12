@@ -11,54 +11,7 @@ Hooks.once('init', async function () {
   console.log("Custom actor types registered:", CONFIG.Actor.typeLabels);
 });
 
-// Add a "Create Custom Actor" button to the Actor Directory
-Hooks.on("renderActorDirectory", (app, html, data) => {
-  const button = $(`<button class="create-custom-actor">Create Custom Actor</button>`);
-  html.find(".directory-header").append(button);
-
-  button.click(() => {
-    const d = new Dialog({
-      title: "Create New Actor",
-      content: `
-        <form>
-          <div class="form-group">
-            <label>Actor Name:</label>
-            <input type="text" id="actor-name" placeholder="Enter actor name"/>
-          </div>
-          <div class="form-group">
-            <label>Actor Type:</label>
-            <select id="actor-type">
-              <option value="character">Character</option>
-              <option value="nemesis">Nemesis</option>
-              <option value="hq">HQ</option>
-              <option value="team">Team</option>
-              <option value="vehicle">Vehicle</option>
-            </select>
-          </div>
-        </form>
-      `,
-      buttons: {
-        create: {
-          label: "Create",
-          callback: (html) => {
-            const name = html.find("#actor-name").val();
-            const type = html.find("#actor-type").val();
-            if (name && type) {
-              Actor.create({ name, type });
-              ui.notifications.info(`Created new ${type}: ${name}`);
-            }
-          }
-        },
-        cancel: {
-          label: "Cancel"
-        }
-      }
-    });
-    d.render(true);
-  });
-});
-
-// Map actor types to their PDFs
+// Map actor types to their default PDF sheets
 const pdfMappings = {
   "character": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom sheets/Sheets/AOH Character sheet 2.1 Fillable.pdf",
   "nemesis": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom sheets/Sheets/AOH Nemesis sheet 1.pdf",
@@ -67,13 +20,18 @@ const pdfMappings = {
   "vehicle": "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom sheets/Sheets/AOH Vehicle sheet.pdf"
 };
 
-// Assign PDFs during actor creation
-Hooks.on("preCreateActor", async (actor) => {
-  const pdfPath = pdfMappings[actor.type];
+// Fallback PDF for unassigned actor types
+const defaultPdfPath = "https://assets.forge-vtt.com/653575f9f36a321e31c74aba/Custom sheets/Sheets/Blank Sheet.pdf";
+
+// Assign default PDF during actor creation
+Hooks.on("preCreateActor", async (actor, options, userId) => {
+  console.log(`Creating actor: ${actor.name} of type: ${actor.type}`);
+  const pdfPath = pdfMappings[actor.type] || defaultPdfPath;
   if (pdfPath) {
+    console.log(`Assigning PDF: ${pdfPath}`);
     actor.updateSource({ "flags.pdf-character-sheet.filePath": pdfPath });
   } else {
-    console.warn(`No PDF mapping found for actor type: ${actor.type}`);
+    console.warn(`No PDF mapping found for actor type: ${actor.type}. Assigning default blank PDF.`);
   }
 });
 
@@ -113,68 +71,6 @@ async function rollAttributeWithEnhancements(actor, attribute) {
       <p><strong>Total Result:</strong> ${total}</p>
     `
   });
-}
-
-// NPC generator using your defined roles
-Hooks.on("createActor", (actor) => {
-  if (actor.type === "npc") {
-    new Dialog({
-      title: "Generate NPC",
-      content: `
-        <p>Choose a role:</p>
-        <select id="npc-role">
-          <option value="Civilian">Civilian</option>
-          <option value="Medic">Medic</option>
-          <option value="Tech">Tech</option>
-          <option value="Mechanic">Mechanic</option>
-          <option value="Politician">Politician</option>
-          <option value="Goon">Goon</option>
-          <option value="Reporter">Reporter</option>
-        </select>
-      `,
-      buttons: {
-        create: {
-          label: "Create",
-          callback: (html) => {
-            const role = html.find("#npc-role").val();
-            generateRandomNPC(role);
-          }
-        },
-        cancel: {
-          label: "Cancel"
-        }
-      }
-    }).render(true);
-  }
-});
-
-function generateRandomNPC(role) {
-  const descriptions = {
-    "Civilian": "An ordinary bystander caught in the action.",
-    "Medic": "A paramedic rushing to save lives.",
-    "Tech": "A brilliant engineer with a secret.",
-    "Mechanic": "A rugged mechanic fixing high-tech machines.",
-    "Politician": "A scheming politician with hidden agendas.",
-    "Goon": "A henchman following orders.",
-    "Reporter": "A relentless journalist seeking the truth."
-  };
-
-  if (!descriptions[role]) {
-    console.error(`Invalid role: ${role}`);
-    ui.notifications.error("Failed to create NPC. Invalid role selected.");
-    return;
-  }
-
-  const name = `NPC - ${role}`;
-  const description = descriptions[role];
-
-  Actor.create({
-    name,
-    type: "npc",
-    data: { description }
-  });
-
-  ui.notifications.info(`Created NPC: ${name}`);
 }
 
 // Default flag initialization for actors
