@@ -12,14 +12,20 @@ Hooks.on("preCreateActor", async (actor) => {
   const pdfPath = pdfMappings[actor.type];
   if (pdfPath) {
     actor.updateSource({ "flags.pdf-character-sheet.filePath": pdfPath });
+  } else {
+    console.warn(`No PDF mapping found for actor type: ${actor.type}`);
   }
 });
 
 // Dice rolling logic using Dice So Nice
 async function rollDice(bubbles) {
+  if (!game.dice3d) {
+    console.error("Dice So Nice is not enabled. Dice rolls will not be visualized.");
+    return { total: 0, formula: "0d6" };
+  }
   const formula = bubbles > 0 ? `${bubbles}d6` : "2d6";
   const roll = new Roll(formula).evaluate({ async: true });
-  await game.dice3d?.showForRoll(roll);
+  await game.dice3d.showForRoll(roll);
   return { total: roll.total, formula };
 }
 
@@ -93,8 +99,14 @@ function generateRandomNPC(role) {
     "Reporter": "A relentless journalist seeking the truth."
   };
 
+  if (!descriptions[role]) {
+    console.error(`Invalid role: ${role}`);
+    ui.notifications.error("Failed to create NPC. Invalid role selected.");
+    return;
+  }
+
   const name = `NPC - ${role}`;
-  const description = descriptions[role] || "A mysterious individual.";
+  const description = descriptions[role];
 
   Actor.create({
     name,
@@ -104,3 +116,13 @@ function generateRandomNPC(role) {
 
   ui.notifications.info(`Created NPC: ${name}`);
 }
+
+// Default flag initialization for actors
+Hooks.on("createActor", (actor) => {
+  if (!actor.getFlag("superheroTTRPG", "attributes")) {
+    actor.setFlag("superheroTTRPG", "attributes", { strength: { bubbles: 0 } });
+  }
+  if (!actor.getFlag("superheroTTRPG", "enhancements")) {
+    actor.setFlag("superheroTTRPG", "enhancements", {});
+  }
+});
