@@ -1,14 +1,14 @@
 {
   "name": "superherottrpg-enhancements",
   "title": "Superhero TTRPG Enhancements",
-  "description": "Enhancements for the Superhero TTRPG system, including actor-specific PDF sheets, automated dice rolls, and options for custom actors (Character, Nemesis, HQ, Team, Vehicle, NPC).",
-  "version": "1.4.1",
+  "description": "Enhancements for the Superhero TTRPG system, including actor-specific PDF sheets, custom actor types, automated dice rolls, and options for custom actors (Character, Nemesis, HQ, Team, Vehicle, NPC).",
+  "version": "1.4.2",
   "author": "Miguel Corona",
   "compatibleCoreVersion": "12",
   "minimumCoreVersion": "12",
-  "url": "https://github.com/mcorona81/superherottrpg-enhancments",
-  "manifest": "https://raw.githubusercontent.com/mcorona81/superherottrpg-enhancments/main/module.json",
-  "download": "https://github.com/mcorona81/superherottrpg-enhancments/archive/refs/heads/main.zip",
+  "url": "https://github.com/mcorona81/superherottrpg-enhancements",
+  "manifest": "https://raw.githubusercontent.com/mcorona81/superherottrpg-enhancements/main/module.json",
+  "download": "https://github.com/mcorona81/superherottrpg-enhancements/archive/refs/heads/main.zip",
   "scripts": [
     "scripts/scripts.js"
   ],
@@ -43,5 +43,6 @@
       "url": "https://github.com/mcorona81",
       "discord": "YourDiscord#0000"
     }
-  ]
+  ],
+  "keywords": ["superhero", "TTRPG", "enhancements", "PDF", "custom actors"]
 }
